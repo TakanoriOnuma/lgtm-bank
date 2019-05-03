@@ -20,8 +20,10 @@ div
       Tab(:id="TAB.id", :name="TAB.name")
         ul.image-list
           template(v-for="image in $data.images")
-            li.image-list__item
+            li.image-list__item(@click="copyLgtmCode(image)")
               img.image-list__item__image(:src="image.path")
+  //- クリップボード用のテキストエリア(opacityを0にして見えないようにしている)
+  textarea.clipboard(ref="clipboard")
 </template>
 
 <script>
@@ -117,6 +119,17 @@ export default {
     onTabChanged({ tab }) {
       console.log(tab.id);
       this.$data.selectedCategory = tab.id;
+    },
+    /**
+     * LGTM用に貼り付ける文字列をクリップボードにコピーする
+     * @param {object} image - LGTM画像情報
+     */
+    copyLgtmCode(image) {
+      this.$refs.clipboard.value = `![LGTM](${image.secure_url})`;
+      this.$refs.clipboard.select();
+      document.execCommand('copy');
+      this.$refs.clipboard.blur();
+      console.log('copy url:', image.secure_url);
     }
   }
 };
@@ -156,6 +169,14 @@ export default {
       max-width: 100%;
     }
   }
+}
+
+.clipboard {
+  position: fixed;
+  z-index: -1;
+  bottom: 0;
+  width: 100%;
+  opacity: 0;
 }
 </style>
 

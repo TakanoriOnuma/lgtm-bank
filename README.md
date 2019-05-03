@@ -1,6 +1,11 @@
 # lgtm-bank
 
-LGTM格納システム
+Heroku + CloudinaryでLGTMで貼り付ける画像を管理する  
+
+Cloudinaryへのアクセスで使用するAPI_KEYなどは環境変数で定義してる。  
+`env/.env.sample`をコピーして`env/.env`に必要な変数を定義する。  
+
+Heroku側ではアプリの設定で環境変数を設定して運用する。  
 
 ## 環境
 + node: 10.15.0

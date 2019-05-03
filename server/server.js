@@ -4,6 +4,17 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
+// 環境変数の読み込み
+require('dotenv').config({ path: path.resolve(__dirname, '../env/.env') });
+
+// cloudinaryの設定
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 // タイムゾーンを設定する
 const moment = require('moment');
 require('moment-timezone');
@@ -24,6 +35,26 @@ app.use(express.static(path.resolve(__dirname, 'public')));
 // サーバーの動作確認
 app.get('/time', (req, res) => {
   res.send(moment().format('YYYY/MM/DD HH:mm:ss'));
+});
+
+// LGTMの画像URLを取得する
+app.get('/lgtm-image-urls', (req, res) => {
+  cloudinary.api.resources(
+    {
+      type: 'upload',
+      prefix: 'LGTM',
+    },
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.status(400).send('error');
+        return;
+      }
+      console.log(result);
+      const urls = result.resources.map((resource) => resource.url);
+      res.send(urls);
+    }
+  );
 });
 
 // サーバーを起動する

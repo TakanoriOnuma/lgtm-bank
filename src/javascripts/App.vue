@@ -10,10 +10,10 @@ div
         option(:value="option.value") {{ option.text }}
     br
     button(
-      :disabled="$data.uploadUrl === '' || $data.category === ''"
+      :disabled="$data.uploadUrl === '' || $data.category === '' || $data.uploadStatus === C.API_STATUS.REQUESTING"
       @click="onClickUploadButton"
     )
-      | upload
+      span {{ C.API_STATUS_UPLOAD_LABEL[$data.uploadStatus] }}
   //- 画像の表示
   Tabs(:options="{ useUrlFragment: false }" @changed="onTabChanged")
     template(v-for="TAB in C.TAB_LIST")
@@ -53,6 +53,22 @@ const TAB_LIST = [
   { id: IMAGE_CATEGORY.OTHER, name: 'その他' },
 ];
 
+// 通信ステータス
+const API_STATUS = {
+  IDLE: 'IDLE',              // 何もしていない状態
+  REQUESTING: 'REQUESTING',  // リクエスト中
+  SUCCESS: 'SUCCESS',        // 成功
+  FAILURE: 'FAILURE',        // 失敗
+};
+
+// アップロードボタンのラベル
+const API_STATUS_UPLOAD_LABEL = {
+  [API_STATUS.IDLE]: 'upload',
+  [API_STATUS.REQUESTING]: 'uploading',
+  [API_STATUS.SUCCESS]: 'uploaded',
+  [API_STATUS.FAILURE]: 'fail'
+};
+
 export default {
   components: {
     Tabs,
@@ -61,6 +77,8 @@ export default {
   },
   data() {
     this.C = {
+      API_STATUS,
+      API_STATUS_UPLOAD_LABEL,
       TAB_LIST,
       IMAGE_CATEGORY_OPTIONS: TAB_LIST.map((TAB) => ({
         value: TAB.id,
@@ -70,6 +88,7 @@ export default {
     return {
       uploadUrl: '',
       category: '',
+      uploadStatus: API_STATUS.IDLE,
       selectedCategory: '',
       images: []
     };
@@ -77,29 +96,40 @@ export default {
   watch: {
     '$data.selectedCategory'(selectedCategory) {
       if (selectedCategory !== '') {
-        axios.request({
-          method: 'GET',
-          url: '/lgtm-image-urls',
-          params: {
-            category: selectedCategory,
-          }
-        })
-          .then((res) => {
-            console.log(res);
-            this.$data.images = res.data.map((d) => ({
-              ...d,
-              path: d.url.replace(/^http:/, '')
-            }));
-          });
+        this.fetchImageList(selectedCategory);
       }
     }
   },
   methods: {
     /**
+     * 画像リストの取得
+     * @param {string} category - カテゴリ
+     */
+    fetchImageList(category) {
+      if (category === '') {
+        return;
+      }
+      axios.request({
+        method: 'GET',
+        url: '/lgtm-image-urls',
+        params: {
+          category,
+        }
+      })
+        .then((res) => {
+          console.log(res);
+          this.$data.images = res.data.map((d) => ({
+            ...d,
+            path: d.url.replace(/^http:/, '')
+          }));
+        });
+    },
+    /**
      * 画像のアップロードボタンを押したとき
      */
     onClickUploadButton() {
       console.log('uploading...');
+      this.$data.uploadStatus = API_STATUS.REQUESTING;
       axios.request({
         method: 'POST',
         url: '/upload',
@@ -110,6 +140,11 @@ export default {
       })
         .then(() => {
           console.log('success');
+          this.$data.uploadStatus = API_STATUS.SUCCESS;
+          this.fetchImageList(this.$data.category);
+        })
+        .catch(() => {
+          this.$data.uploadStatus = API_STATUS.FAILURE;
         });
     },
     /**

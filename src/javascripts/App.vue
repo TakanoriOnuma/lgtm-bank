@@ -18,10 +18,10 @@ div
   Tabs(:options="{ useUrlFragment: false }" @changed="onTabChanged")
     template(v-for="TAB in C.TAB_LIST")
       Tab(:id="TAB.id", :name="TAB.name")
-        ul
+        ul.image-list
           template(v-for="url in $data.imgUrls")
-            li
-              img(:src="url")
+            li.image-list__item
+              img.image-list__item__image(:src="url")
 </template>
 
 <script>
@@ -126,11 +126,30 @@ export default {
     width: 100%;
   }
 }
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  list-style: none;
+
+  &__item {
+    width: 50%;
+
+    @media only screen and (min-width: 768px) {
+      width: 25%;
+    }
+
+    &__image {
+      max-width: 100%;
+    }
+  }
+}
 </style>
 
 <style lang="scss">
 .tabs-component {
-  margin: 4em 0;
+  margin: 10px 0;
 }
 
 .tabs-component-tabs {
@@ -200,7 +219,7 @@ export default {
 }
 
 .tabs-component-panels {
-  padding: 4em 0;
+  padding: 20px;
 }
 
 @media (min-width: 700px) {
@@ -210,7 +229,6 @@ export default {
     border: solid 1px #ddd;
     border-radius: 0 6px 6px 6px;  // stylelint-disable-line
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-    padding: 4em 2em;
   }
 }
 </style>

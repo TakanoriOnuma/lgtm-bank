@@ -57,6 +57,27 @@ app.get('/lgtm-image-urls', (req, res) => {
   );
 });
 
+// URLの画像をローカルにダウンロードしてcloudinaryにアップロードする
+app.post('/upload', (req, res) => {
+  console.log(req.body);
+  const { url: imgUrl, category } = req.body;
+  cloudinary.uploader.upload(
+    imgUrl,
+    {
+      folder: `LGTM/${category}`
+    },
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        res.send(false);
+        return;
+      }
+      console.log(result);
+      res.send(true);
+    }
+  );
+});
+
 // サーバーを起動する
 const server = app.listen(process.env.PORT || 4000, '0.0.0.0', () => {
   const host = server.address().address;

@@ -4,6 +4,7 @@ div
     template(v-for="url in $data.imgUrls")
       li
         img(:src="url")
+  button(@click="onClickUploadButton") upload
 </template>
 
 <script>
@@ -27,7 +28,7 @@ export default {
   },
   created() {
     axios.request({
-      methods: 'GET',
+      method: 'GET',
       url: '/lgtm-image-urls'
     })
       .then((res) => {
@@ -36,6 +37,16 @@ export default {
       });
   },
   methods: {
+    onClickUploadButton() {
+      axios.request({
+        method: 'POST',
+        url: '/upload',
+        data: {
+          url: 'https://lgtmoon.herokuapp.com/images/10150',
+          category: 'anime'
+        }
+      });
+    }
   }
 };
 </script>

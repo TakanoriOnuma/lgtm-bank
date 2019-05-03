@@ -1,13 +1,17 @@
 <template lang="pug">
 div
-  p test
-  form(@submit="onSubmit")
-    input(v-model="$data.text", type="text")
-    button(type="submit") 送信
+  ul
+    template(v-for="url in $data.imgUrls")
+      li
+        img(:src="url")
 </template>
 
 <script>
-import socket from './utils/socket';
+import axios from 'axios';
+
+import { API_ROOT } from './constants/ApiRoot';
+axios.defaults.baseURL = API_ROOT;
+axios.defaults.timeout = 15000;
 
 // components
 import MyComponent from './components/MyComponent.vue';
@@ -18,28 +22,20 @@ export default {
   },
   data() {
     return {
-      message: '',
-      text: ''
+      imgUrls: []
     };
   },
   created() {
-    socket.on('connect', () => {
-      console.log('connected!');
-    });
-
-    socket.on('send', (message) => {
-      console.log(message);
-      this.$data.message = message;
-    });
+    axios.request({
+      methods: 'GET',
+      url: '/lgtm-image-urls'
+    })
+      .then((res) => {
+        console.log(res);
+        this.$data.imgUrls = res.data;
+      });
   },
   methods: {
-    /**
-     * Enterボタンを押したとき
-     */
-    onSubmit(e) {
-      e.preventDefault();
-      socket.emit('send', this.$data.text);
-    }
   }
 };
 </script>

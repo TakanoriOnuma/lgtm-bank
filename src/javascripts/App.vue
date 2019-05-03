@@ -1,6 +1,20 @@
 <template lang="pug">
 div
-  button(@click="onClickUploadButton") upload
+  //- 画像のアップロード
+  .image-upload
+    input.image-upload__input-url(v-model="$data.uploadUrl", type="text", placeholder="画像URL")
+    br
+    select(v-model="$data.category")
+      option(value="", disabled, selected, hidden) カテゴリ
+      template(v-for="option in C.IMAGE_CATEGORY_OPTIONS")
+        option(:value="option.value") {{ option.text }}
+    br
+    button(
+      :disabled="$data.uploadUrl === '' || $data.category === ''"
+      @click="onClickUploadButton"
+    )
+      | upload
+  //- 画像の表示
   Tabs(:options="{ useUrlFragment: false }" @changed="onTabChanged")
     template(v-for="TAB in C.TAB_LIST")
       Tab(:id="TAB.id", :name="TAB.name")
@@ -21,11 +35,20 @@ axios.defaults.timeout = 15000;
 import { Tabs, Tab } from 'vue-tabs-component';
 import MyComponent from './components/MyComponent.vue';
 
+// 画像のカテゴリ
+const IMAGE_CATEGORY = {
+  ANIME: 'anime',
+  ANIMAL: 'animal',
+  SCENERY: 'scenery',
+  OTHER: 'other'
+};
+
+// タブリスト
 const TAB_LIST = [
-  { id: 'anime', name: 'アニメ' },
-  { id: 'animal', name: '動物' },
-  { id: 'scenery', name: '風景' },
-  { id: 'other', name: 'その他' },
+  { id: IMAGE_CATEGORY.ANIME, name: 'アニメ' },
+  { id: IMAGE_CATEGORY.ANIMAL, name: '動物' },
+  { id: IMAGE_CATEGORY.SCENERY, name: '風景' },
+  { id: IMAGE_CATEGORY.OTHER, name: 'その他' },
 ];
 
 export default {
@@ -36,9 +59,15 @@ export default {
   },
   data() {
     this.C = {
-      TAB_LIST
+      TAB_LIST,
+      IMAGE_CATEGORY_OPTIONS: TAB_LIST.map((TAB) => ({
+        value: TAB.id,
+        text: TAB.name
+      }))
     };
     return {
+      uploadUrl: '',
+      category: '',
       imgUrls: []
     };
   },
@@ -53,16 +82,27 @@ export default {
       });
   },
   methods: {
+    /**
+     * 画像のアップロードボタンを押したとき
+     */
     onClickUploadButton() {
+      console.log('uploading...');
       axios.request({
         method: 'POST',
         url: '/upload',
         data: {
-          url: 'https://lgtmoon.herokuapp.com/images/10150',
-          category: 'anime'
+          url: this.$data.uploadUrl,
+          category: this.$data.category,
         }
-      });
+      })
+        .then(() => {
+          console.log('success');
+        });
     },
+    /**
+     * タブが切り替わったとき
+     * @param {{ tab: VueComponent }} { tab } - 選択されたタブコンポーネント
+     */
     onTabChanged({ tab }) {
       console.log(tab.id);
     }
@@ -77,6 +117,14 @@ export default {
 
 .sample {
   color: $red;
+}
+
+.image-upload {
+  padding: 5px;
+
+  &__input-url {
+    width: 100%;
+  }
 }
 </style>
 

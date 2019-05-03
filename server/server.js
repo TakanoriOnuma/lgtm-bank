@@ -39,10 +39,12 @@ app.get('/time', (req, res) => {
 
 // LGTMの画像URLを取得する
 app.get('/lgtm-image-urls', (req, res) => {
+  const { category } = req.query;
   cloudinary.api.resources(
     {
       type: 'upload',
-      prefix: 'LGTM',
+      prefix: `LGTM${category ? `/${category}` : ''}`,
+      max_results: 100,
     },
     (err, result) => {
       if (err) {
@@ -50,9 +52,7 @@ app.get('/lgtm-image-urls', (req, res) => {
         res.status(400).send('error');
         return;
       }
-      console.log(result);
-      const urls = result.resources.map((resource) => resource.url);
-      res.send(urls);
+      res.send(result.resources);
     }
   );
 });

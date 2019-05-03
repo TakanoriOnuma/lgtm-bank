@@ -19,9 +19,9 @@ div
     template(v-for="TAB in C.TAB_LIST")
       Tab(:id="TAB.id", :name="TAB.name")
         ul.image-list
-          template(v-for="url in $data.imgUrls")
+          template(v-for="image in $data.images")
             li.image-list__item
-              img.image-list__item__image(:src="url")
+              img.image-list__item__image(:src="image.path")
 </template>
 
 <script>
@@ -68,18 +68,29 @@ export default {
     return {
       uploadUrl: '',
       category: '',
-      imgUrls: []
+      selectedCategory: '',
+      images: []
     };
   },
-  created() {
-    axios.request({
-      method: 'GET',
-      url: '/lgtm-image-urls'
-    })
-      .then((res) => {
-        console.log(res);
-        this.$data.imgUrls = res.data;
-      });
+  watch: {
+    '$data.selectedCategory'(selectedCategory) {
+      if (selectedCategory !== '') {
+        axios.request({
+          method: 'GET',
+          url: '/lgtm-image-urls',
+          params: {
+            category: selectedCategory,
+          }
+        })
+          .then((res) => {
+            console.log(res);
+            this.$data.images = res.data.map((d) => ({
+              ...d,
+              path: d.url.replace(/^http:/, '')
+            }));
+          });
+      }
+    }
   },
   methods: {
     /**
@@ -105,6 +116,7 @@ export default {
      */
     onTabChanged({ tab }) {
       console.log(tab.id);
+      this.$data.selectedCategory = tab.id;
     }
   }
 };
